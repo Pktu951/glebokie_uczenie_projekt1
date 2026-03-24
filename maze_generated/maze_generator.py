@@ -241,7 +241,7 @@ def get_preset_mazes() -> dict:
         "rows": 31,
         "cols": 31,
         "seed": 2024,
-        "wall_density": 0.35,
+        "wall_density": 0.3,
         "difficulty": "średni",
         "recommended_params": {
             "population_size": 60,
