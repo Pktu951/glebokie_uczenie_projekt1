@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧪 SMA Maze Solver — Slime Mould Algorithm</title>
+    <title> SMA Maze Solver — Slime Mould Algorithm</title>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -473,7 +473,7 @@
 <!-- Header -->
 <div class="header">
     <div>
-        <h1>🧪 SMA Maze Solver</h1>
+        <h1> SMA Maze Solver</h1>
         <div class="subtitle">Slime Mould Algorithm — Pathfinding Optimization</div>
     </div>
     <div class="subtitle">Projekt: Głębokie Nauczanie | Wei et al. (2024)</div>
@@ -484,11 +484,11 @@
 
     <!-- ═══ LEFT PANEL: Controls ═══ -->
     <div class="panel" id="leftPanel">
-        <div class="panel-title">⚙️ Konfiguracja</div>
+        <div class="panel-title"> Konfiguracja</div>
 
         <!-- Preset Selection -->
         <div class="section">
-            <div class="section-header">📦 Predefiniowane labirynty</div>
+            <div class="section-header"> Predefiniowane labirynty</div>
             <div class="preset-grid" id="presetGrid">
                 {% for key, preset in presets.items() %}
                 <button class="preset-btn" data-preset="{{ key }}" onclick="selectPreset('{{ key }}')">
@@ -502,7 +502,7 @@
 
         <!-- Custom Maze -->
         <div class="section">
-            <div class="section-header">🔧 Własny labirynt</div>
+            <div class="section-header"> Własny labirynt</div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Wiersze</label>
@@ -537,10 +537,10 @@
 
         <!-- SMA Parameters -->
         <div class="section">
-            <div class="section-header">🧬 Parametry SMA</div>
+            <div class="section-header"> Parametry SMA</div>
 
             <div id="recommendedBox" class="recommended-box" style="display:none;">
-                <div class="title">✨ Polecane parametry dla tego labiryntu:</div>
+                <div class="title"> Polecane parametry dla tego labiryntu:</div>
                 <div class="params" id="recommendedParams"></div>
                 <button class="btn btn-secondary" style="margin-top:0.5rem; font-size:0.75rem; padding:0.4rem;"
                         onclick="applyRecommended()">Zastosuj polecane</button>
@@ -572,14 +572,18 @@
 
         <!-- Solve Button -->
         <button class="btn btn-primary" id="solveBtn" onclick="solveMaze()" disabled>
-            🚀 Uruchom algorytmy
+             Uruchom algorytmy
+        </button>
+        <button class="btn btn-secondary" id="stopBtn" 
+        onclick="stopSolve()" 
+        style="display:none; background:rgba(239,68,68,0.1); 
+               border-color:#ef4444; color:#ef4444;">Stop
         </button>
     </div>
 
     <!-- ═══ CENTER: Maze Visualization ═══ -->
     <div class="maze-area" id="mazeArea">
         <div class="empty-state" id="emptyState">
-            <div class="icon">🐭</div>
             <div class="text">Wybierz labirynt z panelu po lewej,<br>aby rozpocząć</div>
         </div>
 
@@ -587,16 +591,16 @@
 
         <div class="maze-controls" id="mazeControls" style="display:none;">
             <button class="viz-btn active" data-show="sma" onclick="togglePath('sma', this)">
-                🟢 SMA
+                 SMA
             </button>
             <button class="viz-btn active" data-show="astar" onclick="togglePath('astar', this)">
-                🔵 A*
+                 A*
             </button>
             <button class="viz-btn active" data-show="dijkstra" onclick="togglePath('dijkstra', this)">
-                🟣 Dijkstra
+                 Dijkstra
             </button>
             <button class="viz-btn active" data-show="bfs" onclick="togglePath('bfs', this)">
-                🩷 BFS
+                 BFS
             </button>
         </div>
 
@@ -608,7 +612,7 @@
 
         <div class="spinner" id="spinner">
             <div class="loader"></div>
-            <div class="text">Śluzowiec szuka drogi... 🦠</div>
+            <div class="text">Śluzowiec szuka drogi... </div>
         </div>
     </div>
 
@@ -624,7 +628,7 @@
 
             <!-- SMA Info -->
             <div class="section">
-                <div class="section-header">📖 O algorytmie SMA</div>
+                <div class="section-header"> O algorytmie SMA</div>
                 <div class="info-box">
                     <strong>Slime Mould Algorithm</strong> (Li et al., 2020) symuluje
                     zachowanie śluzowca <em>Physarum polycephalum</em> podczas żerowania.<br><br>
@@ -642,7 +646,7 @@
             </div>
 
             <div class="section">
-                <div class="section-header">📖 Porównywane algorytmy</div>
+                <div class="section-header"> Porównywane algorytmy</div>
                 <div class="info-box">
                     <strong>A*</strong> — optymalny z heurystyką Manhattan<br>
                     <strong>Dijkstra</strong> — optymalny bez heurystyki<br>
@@ -698,7 +702,13 @@
         document.getElementById('densityGroup').style.display =
             this.value === 'open' ? 'block' : 'none';
     });
-
+    function stopSolve() {
+        fetch('/api/stop', { method: 'POST' });
+        document.getElementById('stopBtn').style.display = 'none';
+        document.getElementById('solveBtn').disabled = false;
+        document.getElementById('solveBtn').textContent = ' Uruchom algorytmy';
+        document.getElementById('spinner').classList.remove('active');
+    };
     function generateCustomMaze() {
         const rows = parseInt(document.getElementById('customRows').value);
         const cols = parseInt(document.getElementById('customCols').value);
@@ -832,7 +842,6 @@
         const [sr, sc] = mazeData.start;
         const [er, ec] = mazeData.end;
 
-        // Start (mouse emoji or yellow circle)
         ctx.fillStyle = '#facc15';
         ctx.beginPath();
         ctx.arc(sc * cellSize + cellSize/2, sr * cellSize + cellSize/2, cellSize * 0.35, 0, Math.PI * 2);
@@ -842,17 +851,16 @@
             ctx.font = `${cellSize * 0.6}px serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('🐭', sc * cellSize + cellSize/2, sr * cellSize + cellSize/2);
+            ctx.fillText( sc * cellSize + cellSize/2, sr * cellSize + cellSize/2);
         }
 
-        // End (cheese emoji or red circle)
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc(ec * cellSize + cellSize/2, er * cellSize + cellSize/2, cellSize * 0.35, 0, Math.PI * 2);
         ctx.fill();
 
         if (cellSize >= 14) {
-            ctx.fillText('🧀', ec * cellSize + cellSize/2, er * cellSize + cellSize/2);
+            ctx.fillText( ec * cellSize + cellSize/2, er * cellSize + cellSize/2);
         }
     }
 
@@ -862,7 +870,8 @@
 
         const btn = document.getElementById('solveBtn');
         btn.disabled = true;
-        btn.textContent = '⏳ Obliczam...';
+        document.getElementById('stopBtn').style.display = 'block';
+        btn.textContent = 'Obliczam...';
 
         document.getElementById('spinner').classList.add('active');
 
@@ -879,20 +888,23 @@
         })
         .then(r => r.json())
         .then(data => {
+            document.getElementById('stopBtn').style.display = 'none';
             results = data;
             displayResults(data);
             drawMaze();
 
             btn.disabled = false;
-            btn.textContent = '🚀 Uruchom algorytmy';
+            btn.textContent = 'Uruchom algorytmy';
             document.getElementById('spinner').classList.remove('active');
             document.getElementById('mazeControls').style.display = 'flex';
             document.getElementById('mazeLegend').style.display = 'flex';
         })
         .catch(err => {
+            document.getElementById('stopBtn').style.display = 'none';
+            if (err.status === 499) return; // cancelled, nie pokazuj błędu
             console.error(err);
             btn.disabled = false;
-            btn.textContent = '🚀 Uruchom algorytmy';
+            btn.textContent = 'Uruchom algorytmy';
             document.getElementById('spinner').classList.remove('active');
         });
     }
@@ -914,7 +926,7 @@
 
         let html = `
             <div class="comparison-box">
-                <div class="title">📈 Podsumowanie porównania</div>
+                <div class="title">Podsumowanie porównania</div>
                 <div class="metric">
                     <span class="label">Optymalna ścieżka (A*):</span>
                     <span class="value">${comp.optimal_path_length} kroków</span>
@@ -932,10 +944,10 @@
 
         // Algorithm cards
         const algos = [
-            { key: 'sma', color: '#4ade80', emoji: '🟢' },
-            { key: 'astar', color: '#22d3ee', emoji: '🔵' },
-            { key: 'dijkstra', color: '#a78bfa', emoji: '🟣' },
-            { key: 'bfs', color: '#f472b6', emoji: '🩷' },
+            { key: 'sma', color: '#4ade80' },
+            { key: 'astar', color: '#22d3ee' },
+            { key: 'dijkstra', color: '#a78bfa' },
+            { key: 'bfs', color: '#f472b6' },
         ];
 
         for (const algo of algos) {
@@ -976,7 +988,7 @@
         if (data.sma && data.sma.convergence) {
             html += `
                 <div class="section">
-                    <div class="section-header">📉 Krzywa zbieżności SMA</div>
+                    <div class="section-header"> Krzywa zbieżności SMA</div>
                     <canvas id="convergenceChart"></canvas>
                 </div>
             `;
@@ -985,7 +997,7 @@
         // Speed comparison bar
         html += `
             <div class="section">
-                <div class="section-header">⚡ Porównanie czasu</div>
+                <div class="section-header"> Porównanie czasu</div>
                 <div id="speedBars"></div>
             </div>
         `;

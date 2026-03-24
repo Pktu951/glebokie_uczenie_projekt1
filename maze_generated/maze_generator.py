@@ -127,7 +127,7 @@ def get_preset_mazes() -> dict:
 
     # ── Small mazes (10-15) ──
     presets["small_simple"] = {
-        "name": "🐭 Mały prosty (11x11)",
+        "name": "Mały prosty (11x11)",
         "description": "Idealny do testów i nauki algorytmu",
         "generator": "dfs",
         "rows": 11,
@@ -142,7 +142,7 @@ def get_preset_mazes() -> dict:
     }
 
     presets["small_prim"] = {
-        "name": "🧀 Mały rozgałęziony (11x11)",
+        "name": "Mały rozgałęziony (11x11)",
         "description": "Więcej rozgałęzień, trudniejszy dla SMA",
         "generator": "prim",
         "rows": 11,
@@ -158,7 +158,7 @@ def get_preset_mazes() -> dict:
 
     # ── Medium mazes (21-31) ──
     presets["medium_dfs"] = {
-        "name": "🏃 Średni DFS (21x21)",
+        "name": "Średni DFS (21x21)",
         "description": "Klasyczny labirynt średniej wielkości",
         "generator": "dfs",
         "rows": 21,
@@ -173,7 +173,7 @@ def get_preset_mazes() -> dict:
     }
 
     presets["medium_prim"] = {
-        "name": "🌿 Średni Prim (21x21)",
+        "name": "Średni Prim (21x21)",
         "description": "Gęsty labirynt z wieloma ścieżkami",
         "generator": "prim",
         "rows": 21,
@@ -188,7 +188,7 @@ def get_preset_mazes() -> dict:
     }
 
     presets["medium_open"] = {
-        "name": "🌊 Średni otwarty (21x21)",
+        "name": "Średni otwarty (21x21)",
         "description": "Otwarty labirynt z losowymi ścianami (30%)",
         "generator": "open",
         "rows": 21,
@@ -205,7 +205,7 @@ def get_preset_mazes() -> dict:
 
     # ── Large mazes (31-51) ──
     presets["large_dfs"] = {
-        "name": "🏰 Duży DFS (31x31)",
+        "name": "Duży DFS (31x31)",
         "description": "Duży labirynt - prawdziwe wyzwanie",
         "generator": "dfs",
         "rows": 31,
@@ -220,7 +220,7 @@ def get_preset_mazes() -> dict:
     }
 
     presets["large_prim"] = {
-        "name": "🕸️ Duży Prim (31x31)",
+        "name": "Duży Prim (31x31)",
         "description": "Złożony labirynt z wieloma rozgałęzieniami",
         "generator": "prim",
         "rows": 31,
@@ -235,7 +235,7 @@ def get_preset_mazes() -> dict:
     }
 
     presets["large_open"] = {
-        "name": "🌍 Duży otwarty (31x31)",
+        "name": "Duży otwarty (31x31)",
         "description": "Duży labirynt otwarty - wiele dróg",
         "generator": "open",
         "rows": 31,
@@ -252,7 +252,7 @@ def get_preset_mazes() -> dict:
 
     # ── Extra Large (51+) ──
     presets["xl_dfs"] = {
-        "name": "🏔️ Ekstra duży DFS (51x51)",
+        "name": "Ekstra duży DFS (51x51)",
         "description": "Ogromny labirynt - test wydajności",
         "generator": "dfs",
         "rows": 51,
@@ -267,7 +267,7 @@ def get_preset_mazes() -> dict:
     }
 
     presets["xl_open"] = {
-        "name": "🌌 Ekstra duży otwarty (51x51)",
+        "name": "Ekstra duży otwarty (51x51)",
         "description": "Ogromny otwarty labirynt",
         "generator": "open",
         "rows": 51,

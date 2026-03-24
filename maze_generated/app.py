@@ -32,7 +32,7 @@ app.json = NumpyJSONProvider(app)
 
 # Store current maze state
 current_state = {}
-
+solve_cancelled = False
 
 @app.route("/")
 def index():
@@ -40,6 +40,11 @@ def index():
     presets = get_preset_mazes()
     return render_template("index.html", presets=presets)
 
+@app.route("/api/stop", methods=["POST"])
+def api_stop():
+    global solve_cancelled
+    solve_cancelled = True
+    return jsonify({"status": "stopping"})
 
 @app.route("/api/generate_maze", methods=["POST"])
 def api_generate_maze():
@@ -81,6 +86,8 @@ def api_generate_maze():
 
 @app.route("/api/solve", methods=["POST"])
 def api_solve():
+    global solve_cancelled
+    solve_cancelled = False
     """Run SMA and classical algorithms on current maze."""
     data = request.json
 
@@ -107,7 +114,14 @@ def api_solve():
         max_iterations=max_iterations,
         z=z_param,
     )
-    sma_result = sma.solve()
+    def cancel_check(t, fitness, path):
+        if solve_cancelled:
+            raise InterruptedError("Cancelled")
+
+    try:
+        sma_result = sma.solve(callback=cancel_check)
+    except InterruptedError:
+        return jsonify({"error": "cancelled"}), 499
 
     results["sma"] = {
         "name": "Slime Mould Algorithm",
