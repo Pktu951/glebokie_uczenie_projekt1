@@ -53,7 +53,9 @@
             font-weight: 700;
             background: linear-gradient(135deg, var(--accent), var(--accent2));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
+            color: transparent;
         }
 
         .header .subtitle {
@@ -763,8 +765,7 @@
         document.getElementById('zVal').textContent = parseFloat(recommendedParams.z).toFixed(2);
     }
 
-    // ── Draw Maze ──
-    function drawMaze() {
+function drawMaze() {
         if (!mazeData) return;
 
         const canvas = document.getElementById('mazeCanvas');
@@ -773,7 +774,7 @@
         const rows = maze.length;
         const cols = maze[0].length;
 
-        // Calculate cell size to fit
+        // Dynamiczne dopasowanie rozmiaru komórki
         const maxW = document.getElementById('mazeArea').clientWidth - 40;
         const maxH = document.getElementById('mazeArea').clientHeight - 120;
         const cellSize = Math.max(4, Math.min(Math.floor(maxW / cols), Math.floor(maxH / rows), 28));
@@ -781,20 +782,15 @@
         canvas.width = cols * cellSize;
         canvas.height = rows * cellSize;
 
-        // Draw maze
+        // 1. Rysowanie ścian i przejść
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const x = c * cellSize;
                 const y = r * cellSize;
 
-                if (maze[r][c] === 1) {
-                    ctx.fillStyle = '#1e293b';
-                } else {
-                    ctx.fillStyle = '#0f172a';
-                }
+                ctx.fillStyle = (maze[r][c] === 1) ? '#1e293b' : '#0f172a';
                 ctx.fillRect(x, y, cellSize, cellSize);
 
-                // Grid lines for small mazes
                 if (cellSize > 8) {
                     ctx.strokeStyle = 'rgba(42,52,68,0.3)';
                     ctx.lineWidth = 0.5;
@@ -803,7 +799,7 @@
             }
         }
 
-        // Draw paths if results exist
+        // 2. Rysowanie ścieżek algorytmów (jeśli istnieją wyniki)
         if (results) {
             const pathColors = {
                 bfs: { color: '#f472b6', width: 0.35 },
@@ -812,7 +808,6 @@
                 sma: { color: '#4ade80', width: 0.45 },
             };
 
-            // Draw in order: bfs, dijkstra, astar, sma (sma on top)
             for (const algo of ['bfs', 'dijkstra', 'astar', 'sma']) {
                 if (!visiblePaths[algo]) continue;
                 const res = results[algo];
@@ -838,32 +833,22 @@
             }
         }
 
-        // Draw start and end
+        // 3. Rysowanie punktów Start i Meta (same kropki)
         const [sr, sc] = mazeData.start;
         const [er, ec] = mazeData.end;
 
+        // START (Żółty)
         ctx.fillStyle = '#facc15';
         ctx.beginPath();
         ctx.arc(sc * cellSize + cellSize/2, sr * cellSize + cellSize/2, cellSize * 0.35, 0, Math.PI * 2);
         ctx.fill();
 
-        if (cellSize >= 14) {
-            ctx.font = `${cellSize * 0.6}px serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText( sc * cellSize + cellSize/2, sr * cellSize + cellSize/2);
-        }
-
+        // META (Czerwony)
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
         ctx.arc(ec * cellSize + cellSize/2, er * cellSize + cellSize/2, cellSize * 0.35, 0, Math.PI * 2);
         ctx.fill();
-
-        if (cellSize >= 14) {
-            ctx.fillText( ec * cellSize + cellSize/2, er * cellSize + cellSize/2);
-        }
     }
-
     // ── Solve ──
     function solveMaze() {
         if (!mazeData) return;
