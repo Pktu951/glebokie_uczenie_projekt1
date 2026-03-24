@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  sma-maze-solver:
+    build: .
+    container_name: sma-maze-solver
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    # Resource limits (opcjonalnie)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M

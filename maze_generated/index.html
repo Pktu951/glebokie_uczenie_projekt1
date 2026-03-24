@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 SMA Maze Solver — Slime Mould Algorithm</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0e17;
+            --surface: #111827;
+            --surface2: #1a2332;
+            --border: #2a3444;
+            --text: #e2e8f0;
+            --text-dim: #8892a4;
+            --accent: #4ade80;
+            --accent2: #22d3ee;
+            --accent3: #f472b6;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --wall: #1e293b;
+            --path-open: #0f172a;
+            --sma-path: #4ade80;
+            --astar-path: #22d3ee;
+            --dijkstra-path: #a78bfa;
+            --bfs-path: #f472b6;
+            --start-color: #facc15;
+            --end-color: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header .subtitle {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ── Layout ── */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr 340px;
+            gap: 0;
+            height: calc(100vh - 60px);
+        }
+
+        /* ── Panels ── */
+        .panel {
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 1.2rem;
+            overflow-y: auto;
+        }
+
+        .panel:last-child {
+            border-right: none;
+            border-left: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* ── Preset Grid ── */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.4rem;
+        }
+
+        .preset-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--accent);
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .preset-btn.active {
+            border-color: var(--accent);
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .preset-btn .name { font-weight: 600; }
+        .preset-btn .desc {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .preset-btn .difficulty {
+            display: inline-block;
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            border-radius: 3px;
+            margin-top: 3px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .diff-łatwy { background: rgba(74,222,128,0.2); color: var(--accent); }
+        .diff-średni { background: rgba(245,158,11,0.2); color: var(--warning); }
+        .diff-trudny { background: rgba(239,68,68,0.2); color: var(--danger); }
+        .diff-ekstremalny { background: rgba(244,114,182,0.2); color: var(--accent3); }
+
+        /* ── Form Controls ── */
+        .form-group {
+            margin-bottom: 0.8rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 0.3rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem 0.6rem;
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #16a34a);
+            color: #000;
+        }
+
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74,222,128,0.3); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-secondary {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover { border-color: var(--accent2); }
+
+        /* ── Recommended Box ── */
+        .recommended-box {
+            background: rgba(74, 222, 128, 0.05);
+            border: 1px solid rgba(74, 222, 128, 0.2);
+            border-radius: 6px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .recommended-box .title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 0.4rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .recommended-box .params {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.6;
+        }
+
+        .recommended-box .params span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ── Maze Canvas Area ── */
+        .maze-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            position: relative;
+            padding: 1rem;
+        }
+
+        .maze-area .empty-state {
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        .maze-area .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .maze-area .empty-state .text { font-size: 0.9rem; }
+
+        #mazeCanvas {
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            max-width: 100%;
+            max-height: calc(100vh - 140px);
+        }
+
+        .maze-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .viz-btn {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.35rem 0.8rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .viz-btn:hover { border-color: var(--accent); color: var(--text); }
+        .viz-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(74,222,128,0.1); }
+
+        /* ── Results Panel ── */
+        .result-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.8rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .result-card .algo-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .result-card .algo-name .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .result-card .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.3rem;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .result-card .stat-label { color: var(--text-dim); }
+        .result-card .stat-value { color: var(--text); text-align: right; font-weight: 600; }
+
+        .comparison-box {
+            background: rgba(34, 211, 238, 0.05);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 6px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .comparison-box .title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent2);
+            margin-bottom: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .comparison-box .metric {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 0.2rem 0;
+        }
+
+        .comparison-box .metric .label { color: var(--text-dim); }
+        .comparison-box .metric .value { font-weight: 600; }
+
+        .good { color: var(--accent); }
+        .ok { color: var(--warning); }
+        .bad { color: var(--danger); }
+
+        /* ── Convergence Chart ── */
+        #convergenceChart {
+            width: 100%;
+            height: 180px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        /* ── Spinner ── */
+        .spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner.active { display: block; }
+
+        .spinner .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 0.8rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .spinner .text {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* ── SMA Explanation ── */
+        .info-box {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+        }
+
+        .info-box strong { color: var(--text); }
+        .info-box code {
+            background: var(--bg);
+            padding: 1px 4px;
+            border-radius: 2px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent);
+        }
+
+        /* ── Legend ── */
+        .legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--surface); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+        /* ── Responsive ── */
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .panel { border: none; border-bottom: 1px solid var(--border); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div>
+        <h1>🧪 SMA Maze Solver</h1>
+        <div class="subtitle">Slime Mould Algorithm — Pathfinding Optimization</div>
+    </div>
+    <div class="subtitle">Projekt: Głębokie Nauczanie | Wei et al. (2024)</div>
+</div>
+
+<!-- Main Layout -->
+<div class="main-layout">
+
+    <!-- ═══ LEFT PANEL: Controls ═══ -->
+    <div class="panel" id="leftPanel">
+        <div class="panel-title">⚙️ Konfiguracja</div>
+
+        <!-- Preset Selection -->
+        <div class="section">
+            <div class="section-header">📦 Predefiniowane labirynty</div>
+            <div class="preset-grid" id="presetGrid">
+                {% for key, preset in presets.items() %}
+                <button class="preset-btn" data-preset="{{ key }}" onclick="selectPreset('{{ key }}')">
+                    <div class="name">{{ preset.name }}</div>
+                    <div class="desc">{{ preset.description }}</div>
+                    <span class="difficulty diff-{{ preset.difficulty }}">{{ preset.difficulty }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Custom Maze -->
+        <div class="section">
+            <div class="section-header">🔧 Własny labirynt</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Wiersze</label>
+                    <input type="number" id="customRows" value="21" min="7" max="101" step="2">
+                </div>
+                <div class="form-group">
+                    <label>Kolumny</label>
+                    <input type="number" id="customCols" value="21" min="7" max="101" step="2">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Generator</label>
+                    <select id="customGenerator">
+                        <option value="dfs">DFS (backtrack)</option>
+                        <option value="prim">Prim (rozgałęziony)</option>
+                        <option value="open">Otwarty (losowy)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Seed (opcjonalnie)</label>
+                    <input type="number" id="customSeed" placeholder="losowy">
+                </div>
+            </div>
+            <div class="form-group" id="densityGroup" style="display:none;">
+                <label>Gęstość ścian (tylko otwarty): <span id="densityVal">0.30</span></label>
+                <input type="range" id="customDensity" min="0.1" max="0.5" step="0.05" value="0.3"
+                       oninput="document.getElementById('densityVal').textContent = parseFloat(this.value).toFixed(2)">
+            </div>
+            <button class="btn btn-secondary" onclick="generateCustomMaze()">Generuj własny labirynt</button>
+        </div>
+
+        <!-- SMA Parameters -->
+        <div class="section">
+            <div class="section-header">🧬 Parametry SMA</div>
+
+            <div id="recommendedBox" class="recommended-box" style="display:none;">
+                <div class="title">✨ Polecane parametry dla tego labiryntu:</div>
+                <div class="params" id="recommendedParams"></div>
+                <button class="btn btn-secondary" style="margin-top:0.5rem; font-size:0.75rem; padding:0.4rem;"
+                        onclick="applyRecommended()">Zastosuj polecane</button>
+            </div>
+
+            <div class="form-group">
+                <label>Rozmiar populacji (N)</label>
+                <input type="number" id="popSize" value="50" min="10" max="500">
+            </div>
+            <div class="form-group">
+                <label>Maks. iteracji (max_t)</label>
+                <input type="number" id="maxIter" value="200" min="10" max="2000">
+            </div>
+            <div class="form-group">
+                <label>Parametr z (prawdopodobieństwo eksploracji): <span id="zVal">0.03</span></label>
+                <input type="range" id="zParam" min="0.01" max="0.15" step="0.01" value="0.03"
+                       oninput="document.getElementById('zVal').textContent = parseFloat(this.value).toFixed(2)">
+            </div>
+
+            <div class="info-box">
+                <strong>Wskazówki:</strong><br>
+                • <code>N</code> — więcej agentów = lepsza eksploracja, wolniejsze<br>
+                • <code>max_t</code> — więcej iteracji = lepsza zbieżność<br>
+                • <code>z=0.03</code> — losowa eksploracja (3% szans na random)<br>
+                • Dla dużych labiryntów: zwiększ N i max_t<br>
+                • Dla szybkich testów: zmniejsz oba parametry
+            </div>
+        </div>
+
+        <!-- Solve Button -->
+        <button class="btn btn-primary" id="solveBtn" onclick="solveMaze()" disabled>
+            🚀 Uruchom algorytmy
+        </button>
+    </div>
+
+    <!-- ═══ CENTER: Maze Visualization ═══ -->
+    <div class="maze-area" id="mazeArea">
+        <div class="empty-state" id="emptyState">
+            <div class="icon">🐭</div>
+            <div class="text">Wybierz labirynt z panelu po lewej,<br>aby rozpocząć</div>
+        </div>
+
+        <canvas id="mazeCanvas" style="display:none;"></canvas>
+
+        <div class="maze-controls" id="mazeControls" style="display:none;">
+            <button class="viz-btn active" data-show="sma" onclick="togglePath('sma', this)">
+                🟢 SMA
+            </button>
+            <button class="viz-btn active" data-show="astar" onclick="togglePath('astar', this)">
+                🔵 A*
+            </button>
+            <button class="viz-btn active" data-show="dijkstra" onclick="togglePath('dijkstra', this)">
+                🟣 Dijkstra
+            </button>
+            <button class="viz-btn active" data-show="bfs" onclick="togglePath('bfs', this)">
+                🩷 BFS
+            </button>
+        </div>
+
+        <div class="legend" id="mazeLegend" style="display:none;">
+            <div class="legend-item"><div class="legend-color" style="background:var(--start-color);"></div> Start (mysz)</div>
+            <div class="legend-item"><div class="legend-color" style="background:var(--end-color);"></div> Koniec (ser)</div>
+            <div class="legend-item"><div class="legend-color" style="background:var(--wall);"></div> Ściana</div>
+        </div>
+
+        <div class="spinner" id="spinner">
+            <div class="loader"></div>
+            <div class="text">Śluzowiec szuka drogi... 🦠</div>
+        </div>
+    </div>
+
+    <!-- ═══ RIGHT PANEL: Results ═══ -->
+    <div class="panel" id="rightPanel">
+        <div class="panel-title">📊 Wyniki</div>
+
+        <div id="resultsContainer">
+            <div class="info-box">
+                <strong>Oczekiwanie na wyniki...</strong><br>
+                Wygeneruj labirynt i uruchom algorytmy, aby zobaczyć porównanie.
+            </div>
+
+            <!-- SMA Info -->
+            <div class="section">
+                <div class="section-header">📖 O algorytmie SMA</div>
+                <div class="info-box">
+                    <strong>Slime Mould Algorithm</strong> (Li et al., 2020) symuluje
+                    zachowanie śluzowca <em>Physarum polycephalum</em> podczas żerowania.<br><br>
+
+                    <strong>Kluczowe równania:</strong><br>
+                    • <code>p = tanh|S(i) - DF|</code> — prawdopodobieństwo<br>
+                    • <code>a = arctanh(1 - t/max_t)</code> — granica adaptacyjna<br>
+                    • <code>W</code> — waga na podstawie rankingu fitness<br><br>
+
+                    <strong>3 tryby aktualizacji pozycji:</strong><br>
+                    1. Losowa eksploracja (rand &lt; z)<br>
+                    2. Eksploatacja najlepszego (r &lt; p)<br>
+                    3. Kontrakcja (r ≥ p)
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">📖 Porównywane algorytmy</div>
+                <div class="info-box">
+                    <strong>A*</strong> — optymalny z heurystyką Manhattan<br>
+                    <strong>Dijkstra</strong> — optymalny bez heurystyki<br>
+                    <strong>BFS</strong> — najkrótsza ścieżka w grafie bez wag
+                </div>
+            </div>
+        </div>
+
+        <div id="resultsContent" style="display:none;">
+            <!-- Filled dynamically -->
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // ── State ──
+    let mazeData = null;
+    let results = null;
+    let visiblePaths = { sma: true, astar: true, dijkstra: true, bfs: true };
+    let recommendedParams = null;
+
+    // ── Preset Selection ──
+    function selectPreset(key) {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[data-preset="${key}"]`).classList.add('active');
+
+        fetch('/api/generate_maze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ preset: key })
+        })
+        .then(r => r.json())
+        .then(data => {
+            mazeData = data;
+            recommendedParams = data.recommended_params;
+            showRecommended(data.recommended_params);
+            drawMaze();
+            document.getElementById('solveBtn').disabled = false;
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('mazeCanvas').style.display = 'block';
+            // Reset results
+            document.getElementById('resultsContent').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'block';
+            document.getElementById('mazeControls').style.display = 'none';
+            document.getElementById('mazeLegend').style.display = 'none';
+            results = null;
+        });
+    }
+
+    // ── Custom Maze ──
+    document.getElementById('customGenerator').addEventListener('change', function() {
+        document.getElementById('densityGroup').style.display =
+            this.value === 'open' ? 'block' : 'none';
+    });
+
+    function generateCustomMaze() {
+        const rows = parseInt(document.getElementById('customRows').value);
+        const cols = parseInt(document.getElementById('customCols').value);
+        const gen = document.getElementById('customGenerator').value;
+        const seed = document.getElementById('customSeed').value;
+        const density = parseFloat(document.getElementById('customDensity').value);
+
+        fetch('/api/generate_maze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                rows, cols, generator: gen,
+                seed: seed || null,
+                wall_density: density
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            mazeData = data;
+            recommendedParams = data.recommended_params;
+            showRecommended(data.recommended_params);
+            drawMaze();
+            document.getElementById('solveBtn').disabled = false;
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('mazeCanvas').style.display = 'block';
+            document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('resultsContent').style.display = 'none';
+            document.getElementById('resultsContainer').style.display = 'block';
+            document.getElementById('mazeControls').style.display = 'none';
+            document.getElementById('mazeLegend').style.display = 'none';
+            results = null;
+        });
+    }
+
+    // ── Recommended Params ──
+    function showRecommended(params) {
+        const box = document.getElementById('recommendedBox');
+        const paramsDiv = document.getElementById('recommendedParams');
+        box.style.display = 'block';
+        paramsDiv.innerHTML = `
+            Populacja (N): <span>${params.population_size}</span><br>
+            Iteracje (max_t): <span>${params.max_iterations}</span><br>
+            Parametr z: <span>${params.z}</span>
+        `;
+    }
+
+    function applyRecommended() {
+        if (!recommendedParams) return;
+        document.getElementById('popSize').value = recommendedParams.population_size;
+        document.getElementById('maxIter').value = recommendedParams.max_iterations;
+        document.getElementById('zParam').value = recommendedParams.z;
+        document.getElementById('zVal').textContent = parseFloat(recommendedParams.z).toFixed(2);
+    }
+
+    // ── Draw Maze ──
+    function drawMaze() {
+        if (!mazeData) return;
+
+        const canvas = document.getElementById('mazeCanvas');
+        const ctx = canvas.getContext('2d');
+        const maze = mazeData.maze;
+        const rows = maze.length;
+        const cols = maze[0].length;
+
+        // Calculate cell size to fit
+        const maxW = document.getElementById('mazeArea').clientWidth - 40;
+        const maxH = document.getElementById('mazeArea').clientHeight - 120;
+        const cellSize = Math.max(4, Math.min(Math.floor(maxW / cols), Math.floor(maxH / rows), 28));
+
+        canvas.width = cols * cellSize;
+        canvas.height = rows * cellSize;
+
+        // Draw maze
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const x = c * cellSize;
+                const y = r * cellSize;
+
+                if (maze[r][c] === 1) {
+                    ctx.fillStyle = '#1e293b';
+                } else {
+                    ctx.fillStyle = '#0f172a';
+                }
+                ctx.fillRect(x, y, cellSize, cellSize);
+
+                // Grid lines for small mazes
+                if (cellSize > 8) {
+                    ctx.strokeStyle = 'rgba(42,52,68,0.3)';
+                    ctx.lineWidth = 0.5;
+                    ctx.strokeRect(x, y, cellSize, cellSize);
+                }
+            }
+        }
+
+        // Draw paths if results exist
+        if (results) {
+            const pathColors = {
+                bfs: { color: '#f472b6', width: 0.35 },
+                dijkstra: { color: '#a78bfa', width: 0.35 },
+                astar: { color: '#22d3ee', width: 0.35 },
+                sma: { color: '#4ade80', width: 0.45 },
+            };
+
+            // Draw in order: bfs, dijkstra, astar, sma (sma on top)
+            for (const algo of ['bfs', 'dijkstra', 'astar', 'sma']) {
+                if (!visiblePaths[algo]) continue;
+                const res = results[algo];
+                if (!res || !res.path || res.path.length === 0) continue;
+
+                const pc = pathColors[algo];
+                ctx.strokeStyle = pc.color;
+                ctx.lineWidth = cellSize * pc.width;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 0.8;
+
+                ctx.beginPath();
+                for (let i = 0; i < res.path.length; i++) {
+                    const [pr, pc_] = res.path[i];
+                    const px = pc_ * cellSize + cellSize / 2;
+                    const py = pr * cellSize + cellSize / 2;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        // Draw start and end
+        const [sr, sc] = mazeData.start;
+        const [er, ec] = mazeData.end;
+
+        // Start (mouse emoji or yellow circle)
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.arc(sc * cellSize + cellSize/2, sr * cellSize + cellSize/2, cellSize * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (cellSize >= 14) {
+            ctx.font = `${cellSize * 0.6}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🐭', sc * cellSize + cellSize/2, sr * cellSize + cellSize/2);
+        }
+
+        // End (cheese emoji or red circle)
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(ec * cellSize + cellSize/2, er * cellSize + cellSize/2, cellSize * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (cellSize >= 14) {
+            ctx.fillText('🧀', ec * cellSize + cellSize/2, er * cellSize + cellSize/2);
+        }
+    }
+
+    // ── Solve ──
+    function solveMaze() {
+        if (!mazeData) return;
+
+        const btn = document.getElementById('solveBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Obliczam...';
+
+        document.getElementById('spinner').classList.add('active');
+
+        const params = {
+            population_size: parseInt(document.getElementById('popSize').value),
+            max_iterations: parseInt(document.getElementById('maxIter').value),
+            z: parseFloat(document.getElementById('zParam').value),
+        };
+
+        fetch('/api/solve', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        })
+        .then(r => r.json())
+        .then(data => {
+            results = data;
+            displayResults(data);
+            drawMaze();
+
+            btn.disabled = false;
+            btn.textContent = '🚀 Uruchom algorytmy';
+            document.getElementById('spinner').classList.remove('active');
+            document.getElementById('mazeControls').style.display = 'flex';
+            document.getElementById('mazeLegend').style.display = 'flex';
+        })
+        .catch(err => {
+            console.error(err);
+            btn.disabled = false;
+            btn.textContent = '🚀 Uruchom algorytmy';
+            document.getElementById('spinner').classList.remove('active');
+        });
+    }
+
+    // ── Display Results ──
+    function displayResults(data) {
+        document.getElementById('resultsContainer').style.display = 'none';
+        const content = document.getElementById('resultsContent');
+        content.style.display = 'block';
+
+        const comp = data.comparison;
+        let ratioClass = 'good';
+        let ratioText = comp.sma_optimality_ratio || '—';
+        if (comp.sma_optimality_ratio) {
+            if (comp.sma_optimality_ratio > 1.5) ratioClass = 'bad';
+            else if (comp.sma_optimality_ratio > 1.1) ratioClass = 'ok';
+            ratioText = comp.sma_optimality_ratio.toFixed(2) + 'x';
+        }
+
+        let html = `
+            <div class="comparison-box">
+                <div class="title">📈 Podsumowanie porównania</div>
+                <div class="metric">
+                    <span class="label">Optymalna ścieżka (A*):</span>
+                    <span class="value">${comp.optimal_path_length} kroków</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Ścieżka SMA:</span>
+                    <span class="value ${comp.sma_reached_end ? '' : 'bad'}">${comp.sma_path_length} kroków ${comp.sma_reached_end ? '✓' : '✗ nie dotarł!'}</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Stosunek SMA/optymalny:</span>
+                    <span class="value ${ratioClass}">${ratioText}</span>
+                </div>
+            </div>
+        `;
+
+        // Algorithm cards
+        const algos = [
+            { key: 'sma', color: '#4ade80', emoji: '🟢' },
+            { key: 'astar', color: '#22d3ee', emoji: '🔵' },
+            { key: 'dijkstra', color: '#a78bfa', emoji: '🟣' },
+            { key: 'bfs', color: '#f472b6', emoji: '🩷' },
+        ];
+
+        for (const algo of algos) {
+            const r = data[algo.key];
+            html += `
+                <div class="result-card">
+                    <div class="algo-name">
+                        <span class="dot" style="background:${algo.color};"></span>
+                        ${r.name}
+                    </div>
+                    <div class="stats">
+                        <span class="stat-label">Długość ścieżki:</span>
+                        <span class="stat-value">${r.path_length}</span>
+
+                        <span class="stat-label">Czas:</span>
+                        <span class="stat-value">${r.execution_time}s</span>
+
+                        ${r.nodes_explored !== undefined ? `
+                            <span class="stat-label">Zbadane węzły:</span>
+                            <span class="stat-value">${r.nodes_explored}</span>
+                        ` : ''}
+
+                        ${r.iterations_used !== undefined ? `
+                            <span class="stat-label">Iteracji użyto:</span>
+                            <span class="stat-value">${r.iterations_used}</span>
+                        ` : ''}
+
+                        ${r.fitness !== undefined ? `
+                            <span class="stat-label">Fitness:</span>
+                            <span class="stat-value">${r.fitness}</span>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Convergence chart
+        if (data.sma && data.sma.convergence) {
+            html += `
+                <div class="section">
+                    <div class="section-header">📉 Krzywa zbieżności SMA</div>
+                    <canvas id="convergenceChart"></canvas>
+                </div>
+            `;
+        }
+
+        // Speed comparison bar
+        html += `
+            <div class="section">
+                <div class="section-header">⚡ Porównanie czasu</div>
+                <div id="speedBars"></div>
+            </div>
+        `;
+
+        content.innerHTML = html;
+
+        // Draw convergence chart
+        if (data.sma && data.sma.convergence) {
+            setTimeout(() => drawConvergenceChart(data.sma.convergence), 100);
+        }
+
+        // Draw speed bars
+        setTimeout(() => drawSpeedBars(comp.speed_comparison), 100);
+    }
+
+    // ── Convergence Chart ──
+    function drawConvergenceChart(convergence) {
+        const canvas = document.getElementById('convergenceChart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        const w = canvas.parentElement.clientWidth;
+        canvas.width = w;
+        canvas.height = 180;
+
+        const padding = { top: 20, right: 15, bottom: 30, left: 50 };
+        const plotW = w - padding.left - padding.right;
+        const plotH = 180 - padding.top - padding.bottom;
+
+        // Background
+        ctx.fillStyle = '#0a0e17';
+        ctx.fillRect(0, 0, w, 180);
+
+        // Data
+        const maxVal = Math.max(...convergence);
+        const minVal = Math.min(...convergence);
+        const range = maxVal - minVal || 1;
+
+        // Grid lines
+        ctx.strokeStyle = 'rgba(42,52,68,0.5)';
+        ctx.lineWidth = 0.5;
+        for (let i = 0; i <= 4; i++) {
+            const y = padding.top + (plotH / 4) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, y);
+            ctx.lineTo(w - padding.right, y);
+            ctx.stroke();
+
+            const val = maxVal - (range / 4) * i;
+            ctx.fillStyle = '#8892a4';
+            ctx.font = '10px JetBrains Mono';
+            ctx.textAlign = 'right';
+            ctx.fillText(val.toFixed(0), padding.left - 5, y + 3);
+        }
+
+        // Convergence line
+        ctx.strokeStyle = '#4ade80';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < convergence.length; i++) {
+            const x = padding.left + (i / (convergence.length - 1)) * plotW;
+            const y = padding.top + plotH - ((convergence[i] - minVal) / range) * plotH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Gradient fill
+        const grad = ctx.createLinearGradient(0, padding.top, 0, padding.top + plotH);
+        grad.addColorStop(0, 'rgba(74,222,128,0.2)');
+        grad.addColorStop(1, 'rgba(74,222,128,0)');
+        ctx.lineTo(padding.left + plotW, padding.top + plotH);
+        ctx.lineTo(padding.left, padding.top + plotH);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Axis labels
+        ctx.fillStyle = '#8892a4';
+        ctx.font = '10px JetBrains Mono';
+        ctx.textAlign = 'center';
+        ctx.fillText('Iteracja', w / 2, 175);
+        ctx.fillText('0', padding.left, 175);
+        ctx.fillText(convergence.length.toString(), w - padding.right, 175);
+    }
+
+    // ── Speed Bars ──
+    function drawSpeedBars(speeds) {
+        const container = document.getElementById('speedBars');
+        if (!container) return;
+
+        const maxSpeed = Math.max(...Object.values(speeds));
+        const colors = { sma: '#4ade80', astar: '#22d3ee', dijkstra: '#a78bfa', bfs: '#f472b6' };
+        const names = { sma: 'SMA', astar: 'A*', dijkstra: 'Dijkstra', bfs: 'BFS' };
+
+        let html = '';
+        for (const [key, val] of Object.entries(speeds)) {
+            const pct = Math.max(2, (val / maxSpeed) * 100);
+            html += `
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;font-size:0.7rem;font-family:'JetBrains Mono',monospace;">
+                    <span style="width:55px;color:var(--text-dim);">${names[key]}</span>
+                    <div style="flex:1;height:16px;background:var(--bg);border-radius:3px;overflow:hidden;">
+                        <div style="width:${pct}%;height:100%;background:${colors[key]};border-radius:3px;transition:width 0.5s;"></div>
+                    </div>
+                    <span style="width:70px;text-align:right;color:${colors[key]};">${val}s</span>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    // ── Toggle Paths ──
+    function togglePath(algo, btn) {
+        visiblePaths[algo] = !visiblePaths[algo];
+        btn.classList.toggle('active');
+        drawMaze();
+    }
+
+    // ── Window resize ──
+    window.addEventListener('resize', () => {
+        if (mazeData) drawMaze();
+    });
+</script>
+
+</body>
+</html>
